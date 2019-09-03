@@ -372,3 +372,59 @@ Content-Type: application/x-ndjson
 { "id": "1924", "title" : "Plan 9 from Outer Space", "year":1959 , "genre":["Horror", "Sci-Fi"] }    
 //Give a new line here. Not '\n' but the actual new line.
 //don't forget to check content type
+
+###Sorting - will result in error because of analyzer
+GET {{url}}/movies/_search?sort=title.raw
+Content-Type: application/json
+
+###Filter Query
+GET {{url}}/movies/_search
+Content-Type: application/json
+
+{
+    "query": {
+        "bool": {
+            "must": {"match": {"genre": "Sci-Fi"}},
+            "must_not": {"match": {"title": "trek"}},
+            "filter": {"range": {"year": {"gte": 2010, "lt": 2015}}}
+        }
+    }
+}
+
+###Filter Query
+GET {{url}}/movies/_search?sort=title.raw
+Content-Type: application/json
+
+{
+    "query": {
+        "bool": {
+            "must": {"match": {"genre": "Sci-Fi"}},
+            "filter": {"range": {"year": {"lt": 1960}}}
+        }
+    }
+}
+
+###Fuzzy matches - will tolerate fuziness of 2 char insertion, substitution and deletion
+GET {{url}}/movies/_search
+Content-Type: application/json
+
+{
+    "query": {
+        "fuzzy": {
+            "title": {"value":"intrsteller", "fuzziness": 2}
+        }
+    }
+}
+// in 'intrsteller' two char are wrong in typo
+
+###Fuzzy matches - will tolerate fuziness of 2 char insertion, substitution and deletion
+GET {{url}}/movies/_search
+Content-Type: application/json
+
+{
+    "query": {
+        "fuzzy": {
+            "title": {"value":"intrsteller", "fuzziness": 2}
+        }
+    }
+}
