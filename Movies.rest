@@ -504,3 +504,113 @@ Content-Type: application/json
         }
     }
 }
+//try with different query term like 'star', 'tr', 'star t', etc
+
+//N-grams
+
+//"star":
+//unigram: [s,t,a,r]
+//bigram: [st,ta,ar]
+//trigram: [sta,tar]
+//4-gram: [star]
+//edge n-grams are built only on the beginning of each term
+
+//Delete whole index and recreate with custom autocomplete analyzer
+### Delete entire Movie index
+DELETE {{url}}/movies
+Content-Type: application/json
+
+### Movie properties updated after deleting entire index
+PUT {{url}}/movies
+Content-Type: application/json
+
+{
+    "settings": {
+        "analysis": {
+            "filter": {
+                "autocomplete_filter": {
+                    "type": "edge_ngram",
+                    "min_gram": 1,
+                    "max_gram": 20
+                }
+            },
+            "analyzer": {
+                "autocomplete": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "autocomplete_filter"
+                    ]
+                }
+            }
+        }
+    }
+}
+
+###Query analyzer
+GET {{url}}/movies/_analyze
+Content-Type: application/json
+
+{
+    "analyzer": "autocomplete",
+    "text": "Sta"
+}
+
+### title properties updated after deleting entire index
+PUT {{url}}/movies/_mapping
+Content-Type: application/json
+
+{
+    "properties": {
+        "title": {
+            "type": "text",
+            "analyzer": "autocomplete"
+        }
+    }       
+}
+
+### PUT Bulk movies
+PUT {{url}}/_bulk
+Content-Type: application/x-ndjson
+
+{ "create" : { "_index" : "movies", "_id" : "135569" } }
+{ "id": "135569", "title" : "Star Trek Beyond", "year":2016 , "genre":["Action", "Adventure", "Sci-Fi"] }
+{ "create" : { "_index" : "movies", "_id" : "122886" } }
+{ "id": "122886", "title" : "Star Wars: Episode VII - The Force Awakens", "year":2015 , "genre":["Action", "Adventure", "Fantasy", "Sci-Fi", "IMAX"] }
+{ "create" : { "_index" : "movies", "_id" : "109487" } }
+{ "id": "109487", "title" : "Interstellar", "year":2014 , "genre":["Sci-Fi", "IMAX"] }
+{ "create" : { "_index" : "movies", "_id" : "58559" } }
+{ "id": "58559", "title" : "Dark Knight, The", "year":2008 , "genre":["Action", "Crime", "Drama", "IMAX"] }
+{ "create" : { "_index" : "movies", "_id" : "1924" } }
+{ "id": "1924", "title" : "Plan 9 from Outer Space", "year":1959 , "genre":["Horror", "Sci-Fi"] }    
+//Give a new line here. Not '\n' but the actual new line.
+//don't forget to check content type
+
+###Query analyzer - which will search Plan 9 from Outer Space as well
+GET {{url}}/movies/_search
+Content-Type: application/json
+
+{
+    "query": {
+        "match": {
+            "title": "sta"
+        }
+    }
+}
+
+
+###Query analyzer - worked as expected. But "star tr" will also search Star Wars along with star trek which may be not expected behaviour
+GET {{url}}/movies/_search
+Content-Type: application/json
+
+{
+    "query": {
+        "match": {
+            "title": {
+                "query": "sta",
+                "analyzer": "standard"
+            }
+        }
+    }
+}
