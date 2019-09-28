@@ -378,3 +378,81 @@ Content-Type: application/json
         }
     }
 }
+
+### DSL - Domain Specific Language
+GET {{url}}/courses/_search
+Content-Type: application/json
+
+{
+    "query": {
+        "bool": {
+            "filter": {
+                "match": {"name": "accounting"}
+            }
+        }
+    }
+}
+
+### DSL - Domain Specific Language
+GET {{url}}/courses/_search
+Content-Type: application/json
+
+{
+    "query": {
+        "bool": {
+            "filter": {
+                "bool": {
+                    "must": [
+                        {"match": {"professor.name": "bill"}},
+                        {"match": {"name": "accounting"}}
+                    ]
+                }
+            },
+            "must": [
+                {"match": {"room": "e3"}}
+            ]
+        }
+    }
+}
+
+### DSL - Domain Specific Language
+#filter not helped in relevancy score
+GET {{url}}/courses/_search
+Content-Type: application/json
+
+{
+    "query": {
+        "bool": {
+            "filter": {
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "students_enrolled": {
+                                    "gte": 12
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "should": [
+                {"match": {"room": "e3"}},
+                {
+                    "range": {
+                        "students_enrolled": {
+                            "gte": 13,
+                            "lte": 14
+                        }
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "market",
+                        "fields": ["name","course_description^2"] //field boosting -> ^2 gives more importance in scoring
+                    }
+                }
+            ]
+        }
+    }
+}
