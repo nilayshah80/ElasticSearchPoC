@@ -52,3 +52,192 @@ GET {{url}}/vehicles
 
 ### Delete vehicle index
 DELETE  {{url}}/vehicles/
+
+### bulk
+POST {{url}}/vehicles/cars/_bulk
+Content-Type: application/x-ndjson
+
+{ "index": {}}
+{ "price" : 10000, "color" : "white", "make" : "honda", "sold" : "2016-10-28", "condition": "okay"}
+{ "index": {}}
+{ "price" : 20000, "color" : "white", "make" : "honda", "sold" : "2016-11-05", "condition": "new" }
+{ "index": {}}
+{ "price" : 30000, "color" : "green", "make" : "ford", "sold" : "2016-05-18", "condition": "new" }
+{ "index": {}}
+{ "price" : 15000, "color" : "blue", "make" : "toyota", "sold" : "2016-07-02", "condition": "good" }
+{ "index": {}}
+{ "price" : 12000, "color" : "green", "make" : "toyota", "sold" : "2016-08-19" , "condition": "good"}
+{ "index": {}}
+{ "price" : 18000, "color" : "red", "make" : "dodge", "sold" : "2016-11-05", "condition": "good"  }
+{ "index": {}}
+{ "price" : 80000, "color" : "red", "make" : "bmw", "sold" : "2016-01-01", "condition": "new"  }
+{ "index": {}}
+{ "price" : 25000, "color" : "blue", "make" : "ford", "sold" : "2016-08-22", "condition": "new"  }
+{ "index": {}}
+{ "price" : 10000, "color" : "gray", "make" : "dodge", "sold" : "2016-02-12", "condition": "okay" }
+{ "index": {}}
+{ "price" : 19000, "color" : "red", "make" : "dodge", "sold" : "2016-02-12", "condition": "good" }
+{ "index": {}}
+{ "price" : 20000, "color" : "red", "make" : "chevrolet", "sold" : "2016-08-15", "condition": "good" }
+{ "index": {}}
+{ "price" : 13000, "color" : "gray", "make" : "chevrolet", "sold" : "2016-11-20", "condition": "okay" }
+{ "index": {}}
+{ "price" : 12500, "color" : "gray", "make" : "dodge", "sold" : "2016-03-09", "condition": "okay" }
+{ "index": {}}
+{ "price" : 35000, "color" : "red", "make" : "dodge", "sold" : "2016-04-10", "condition": "new" }
+{ "index": {}}
+{ "price" : 28000, "color" : "blue", "make" : "chevrolet", "sold" : "2016-08-15", "condition": "new" }
+{ "index": {}}
+{ "price" : 30000, "color" : "gray", "make" : "bmw", "sold" : "2016-11-20", "condition": "good" }
+
+### DSL - Domain Specific Language
+GET {{url}}/vehicles/cars/_search
+Content-Type: application/json
+
+{
+  "from": 0,
+  "size": 20,
+  "query": {
+      "match_all": {}
+  },
+  "sort": [
+    {"price":{"order":"desc"}}
+  ]
+}
+
+### Aggregation
+GET {{url}}/vehicles/cars/_count
+Content-Type: application/json
+
+{
+  "query": {
+      "match": {"make":"toyota"}
+  }
+}
+
+### Aggregation
+GET {{url}}/vehicles/cars/_search
+Content-Type: application/json
+
+{
+  "size": 0,
+  "query": {
+    "match": {"color": "red"}
+  },
+  "aggs": {
+    "popular_cars": {
+      "terms": {
+        "field": "make.keyword"
+      },
+      "aggs": {
+        "avg_price": {
+          "avg": {
+            "field": "price"
+          }
+        },
+        "max_price": {
+          "max": {
+            "field": "price"
+          }
+        },
+        "min_price": {
+          "min": {
+            "field": "price"
+          }
+        }
+      }
+    }
+  }
+}
+
+### Aggregation
+GET {{url}}/vehicles/cars/_search
+Content-Type: application/json
+
+{
+  "size": 0,
+  "aggs": {
+    "popular_cars": {
+      "terms": {
+        "field": "make.keyword"
+      },
+      "aggs": {
+        "stats_on_price": {
+          "stats": {
+            "field": "price"
+          }
+        }
+      }
+    }
+  }
+}
+
+### Aggregation
+GET {{url}}/vehicles/cars/_search
+Content-Type: application/json
+
+{
+  "size": 0,
+  "aggs": {
+    "popular_cars": {
+      "terms": {
+        "field": "make.keyword"
+      },
+      "aggs": {
+        "sold_date_ranges": {
+          "range": {
+            "field": "sold",
+            "ranges": [
+              {
+                "from": "2016-01-01",
+                "to": "2016-05-18"
+              },
+              {
+                "from": "2016-05-18",
+                "to": "2017-01-01"
+              }
+            ]
+          },
+          "aggs": {
+            "avg_price": {
+              "avg": {
+                "field": "price"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+### Aggregation
+GET {{url}}/vehicles/cars/_search
+Content-Type: application/json
+
+{
+  "size": 0,
+  "aggs": {
+    "car_conditions": {
+      "terms": {
+        "field": "condition.keyword"
+      },
+      "aggs": {
+        "avg_price": {
+          "avg": {
+            "field": "price"
+          }
+        },
+        "make": {
+          "terms": {
+            "field": "make.keyword"
+          },
+          "aggs": {
+            "min_price": {"min": {"field": "price"}},
+            "max_price": {"max": {"field": "price"}}
+          }
+        }
+      }
+    }
+  }
+}
