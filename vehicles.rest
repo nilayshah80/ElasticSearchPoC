@@ -20,8 +20,35 @@ Content-Type: application/json
 
 {
   "make": "Honda",
-  "Color": "Black",
+  "Color": "Blue",
   "HP": 250,
   "milage": 24000,
   "price": 19300.97
 }
+
+### Get vehicle
+GET {{url}}/vehicles/car/123
+
+### Get vehicle
+GET {{url}}/vehicles/car/123/_source
+
+### Head
+HEAD {{url}}/vehicles/car/123/
+
+### update driver
+POST {{url}}/vehicles/car/123/_update
+{
+  "doc":
+  {
+    "driver": "Tom"
+  }
+}
+
+### Delete vehicle
+DELETE  {{url}}/vehicles/car/123
+
+### Get vehicle index
+GET {{url}}/vehicles
+
+### Delete vehicle index
+DELETE  {{url}}/vehicles/
